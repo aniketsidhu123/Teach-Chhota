@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Teach Chhota"
+description = "An offline-first learning PWA for rural Class 5–8 students, where children study local lessons and learn by teaching a friendly simulated AI mascot."
+version = "1.0.0"
+id = "artifacts/teach-chhota"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 21681
+
+[services.development]
+run = "pnpm --filter @workspace/teach-chhota run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/teach-chhota", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/teach-chhota/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21681"
+BASE_PATH = "/"

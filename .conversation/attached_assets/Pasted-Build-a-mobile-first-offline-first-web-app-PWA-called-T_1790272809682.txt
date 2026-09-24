@@ -1,0 +1,100 @@
+Build a mobile-first, offline-first web app (PWA) called "Teach Chhota":
+"Study without internet. Learn by teaching a tiny, stubborn AI."
+
+AUDIENCE
+Rural students (Class 5-8) who share one phone with very limited data.
+Many parents are low-literacy. The UI must be simple, warm, icon-heavy,
+audio-friendly, and child-safe. Support English and Hindi with a language
+toggle. Not a ChatGPT clone. No leaderboards or competitive ranking.
+
+HARD REQUIREMENTS
+- NO backend and NO cloud/API calls. All data is local (bundled JSON files
+  + browser local storage / IndexedDB).
+- Installable PWA with a service worker so every screen works in airplane
+  mode.
+- Small persistent badge: "Works offline" and "Internet: not required".
+- The AI is SIMULATED for now. Put all AI behavior behind a swappable
+  service layer (e.g. evaluateExplanation(), retrieveAnswer(), speak(),
+  transcribe()) so real local models can replace the mocks later.
+
+SCREENS
+1. Home: "Hi {student name}" + profile switcher (multiple students on one
+   phone), big buttons: Library, Ask a Doubt, Teach Chhota, My Progress.
+2. Library: Class -> Subject -> Chapter. Each chapter lists Notes, PDFs,
+   Videos (placeholder players), and Previous-Year Questions (PYQs).
+   Keyword search across everything. Bookmarks.
+3. Ask a Doubt: type or hold-to-talk (Web Speech API if available, else
+   text only). Show the matching textbook passage FIRST with its chapter
+   and page, then an optional "Explain simply" button. If nothing matches
+   well, show: "I don't have enough information on this yet."
+   Retrieval = simple client-side keyword/fuzzy search over bundled JSON.
+4. Teach Chhota - Misconception Mode:
+   - A friendly illustrated mascot "Chhota" with a speech bubble states a
+     wrong belief taken from the JSON library.
+   - Student replies by typing or hold-to-talk, and sees a transcript
+     preview they can edit before sending.
+   - Chhota resists at most 2 times using scripted lines, then offers a
+     hint, then a final result.
+   - Progress indicator "1/3". Completion screen: "You taught Chhota!"
+   - Outcomes: Resolved / Resolved with hint / Partly understood /
+     Unresolved.
+5. Teach Chhota - Explain-Back Mode: student picks a chapter and explains
+   what they learned. Chhota asks 1-2 curious "why?" questions. Then a
+   feedback card: Explained well / Got this wrong / Missed / Weak topics
+   (added to revision list).
+6. Parent Readout: 1-2 plain sentences in the parent's language with a
+   "Play audio" button (browser speech synthesis) and a "Share via SMS"
+   button that opens the phone's SMS composer with the text.
+7. My Progress: per-concept status (resolved / hint / partial /
+   unresolved), revision list, and simple review dates
+   (unresolved: 1 day, hint needed: 3 days, resolved: 7 days).
+8. Teacher View (/teacher): one class overview with counts of students per
+   misconception (simple bar list), students needing support, recent
+   sessions. Use fake but realistic demo data. No student rankings.
+9. Settings/Privacy: language, data usage note "Your child's audio and
+   learning data stay on this device", and a "Delete this student's data"
+   button.
+
+SIMULATED EVALUATION (client-side)
+Each misconception has a rubric of 3-4 points. Score the student's text by
+checking, for each rubric point, whether the answer contains ideas matching
+that point's list of accepted phrases/synonyms (English + Hindi). A correct
+final answer with no reasoning must NOT count as resolved. Show which
+rubric points were covered and which were missed. Structure the result as
+{ score, pointsCovered, pointsMissed, misconceptionPersists, needsHint,
+resolution } so a real model can replace this later.
+
+SAMPLE DATA (bundle as local JSON; make 5 misconceptions, examples below)
+Topic: Class 5 Maths - Comparing Fractions
+{
+  "id": "frac_001",
+  "chhotaClaim": "I think 1/2 is smaller than 1/4, because 4 is bigger than 2.",
+  "wrongBelief": "A larger denominator means a larger fraction.",
+  "resistance1": "But if we cut a roti into 4 pieces, each piece is smaller. So doesn't 4 mean bigger?",
+  "resistance2": "Imagine the same roti. Would you rather get 1 piece out of 2 or 1 piece out of 4?",
+  "hint": "Think about how big each piece is when the roti is cut into more pieces.",
+  "rubric": [
+    "the denominator is the number of equal parts",
+    "more equal parts means each part is smaller",
+    "so 1/4 is smaller than 1/2"
+  ]
+}
+Also include: "numerator alone decides size", "1/3 + 1/3 = 1/6",
+"fractions with different denominators can't be compared",
+"cross multiplication is just a rule". Include a few sample library items
+(chapter notes, PYQ list, placeholder video cards) and 3-4 text passages
+for the doubt solver.
+
+DESIGN
+Warm, playful, high-contrast palette, large tap targets, big rounded
+buttons, simple icons, minimal text, gentle animations for Chhota (blink,
+tilt head when thinking, small celebration on success). Show a
+"Chhota is thinking..." animation during evaluation.
+
+ERROR HANDLING
+Friendly messages only, never technical errors: "Chhota couldn't hear
+that. Try again." Handle no microphone (fall back to typing), empty input,
+and no search results.
+
+Start by generating the full app shell with navigation and the Teach
+Chhota Misconception Mode flow working end to end with the sample data.

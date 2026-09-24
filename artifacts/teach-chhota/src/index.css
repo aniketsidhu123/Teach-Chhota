@@ -1,0 +1,97 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap');
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --font-sans: var(--app-font-sans);
+  --font-serif: var(--app-font-serif);
+  --font-mono: var(--app-font-mono);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  --background: 44 55% 95%;
+  --foreground: 178 31% 18%;
+  --card: 48 75% 99%;
+  --card-foreground: 178 31% 18%;
+  --border: 43 30% 82%;
+  --input: 43 30% 82%;
+  --ring: 174 43% 37%;
+  --primary: 174 43% 37%;
+  --primary-foreground: 48 75% 99%;
+  --secondary: 38 90% 69%;
+  --secondary-foreground: 178 31% 18%;
+  --muted: 43 33% 89%;
+  --muted-foreground: 177 16% 42%;
+  --accent: 15 71% 62%;
+  --accent-foreground: 48 75% 99%;
+  --destructive: 4 63% 48%;
+  --destructive-foreground: 48 75% 99%;
+  --sidebar: 174 43% 29%;
+  --sidebar-foreground: 45 48% 95%;
+  --sidebar-border: 174 36% 39%;
+  --app-font-sans: 'DM Sans', sans-serif;
+  --app-font-serif: 'Fraunces', Georgia, serif;
+  --app-font-mono: 'DM Sans', sans-serif;
+  --radius: 1.15rem;
+}
+
+.dark {
+  --background: 178 31% 12%;
+  --foreground: 44 55% 95%;
+  --card: 178 27% 17%;
+  --card-foreground: 44 55% 95%;
+  --border: 177 20% 29%;
+  --input: 177 20% 29%;
+  --ring: 38 90% 69%;
+  --primary: 38 90% 69%;
+  --primary-foreground: 178 31% 18%;
+  --secondary: 174 34% 28%;
+  --secondary-foreground: 44 55% 95%;
+  --muted: 177 20% 24%;
+  --muted-foreground: 43 28% 72%;
+  --accent: 15 71% 62%;
+  --accent-foreground: 48 75% 99%;
+  --destructive: 4 63% 58%;
+  --destructive-foreground: 48 75% 99%;
+}
+
+@layer base {
+  * { @apply border-border; }
+  body { @apply font-sans antialiased bg-background text-foreground; margin: 0; }
+  button, a, input, textarea, select { -webkit-tap-highlight-color: transparent; }
+}
+
+@keyframes floaty { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-6px) rotate(2deg); } }
+@keyframes blink { 0%, 46%, 52%, 100% { transform: scaleY(1); } 49% { transform: scaleY(.12); } }
+@keyframes pop { 0% { transform: scale(.86); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+@keyframes rise { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.mascot-float { animation: floaty 4s ease-in-out infinite; }
+.mascot-blink { animation: blink 5s ease-in-out infinite; transform-origin: center; }
+.animate-pop { animation: pop .35s ease-out both; }
+.animate-rise { animation: rise .45s ease-out both; }
+.paper-texture { position: relative; }
+.paper-texture::after { content: ''; pointer-events: none; position: fixed; inset: 0; opacity: .035; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.8'/%3E%3C/svg%3E"); z-index: 50; }
+.safe-bottom { padding-bottom: max(1rem, env(safe-area-inset-bottom)); }
