@@ -2,6 +2,8 @@
 
 # compiled output
 dist
+build
+.next
 tmp
 out-tsc
 *.tsbuildinfo
@@ -10,6 +12,12 @@ out-tsc
 
 # dependencies
 node_modules
+pnpm-debug.log*
+
+# Environment
+.env
+.env.local
+.env.*.local
 
 # IDEs and editors
 /.idea

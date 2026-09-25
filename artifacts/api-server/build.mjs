@@ -15,7 +15,7 @@ async function buildAll() {
   await rm(distDir, { recursive: true, force: true });
 
   await esbuild({
-    entryPoints: [path.resolve(artifactDir, "src/index.ts")],
+    entryPoints: [path.resolve(artifactDir, "src/index.ts"), path.resolve(artifactDir, "src/seed.ts")],
     platform: "node",
     bundle: true,
     format: "esm",
@@ -32,6 +32,8 @@ async function buildAll() {
       "sharp",
       "better-sqlite3",
       "sqlite3",
+      "libsql",
+      "@libsql/*",
       "canvas",
       "bcrypt",
       "argon2",

@@ -13,19 +13,62 @@ export const misconceptions = [
   { id: 'angle', chapter: 'Lines and Angles', belief: 'A longer line makes a bigger angle.', prompt: 'This angle is bigger because one line is longer.', keywords: ['turn', 'meeting', 'degree', 'length', 'same'] },
 ];
 
-export function retrieveAnswer(question: string) {
-  const words = question.toLowerCase().split(/\W+/).filter(Boolean);
-  const scored = passages.map((passage) => ({ passage, score: passage.keywords.reduce((n, word) => n + (words.includes(word) ? 1 : 0), 0) })).sort((a, b) => b.score - a.score);
-  return scored[0]?.score ? scored[0].passage : null;
+export async function retrieveAnswer(question: string) {
+  try {
+    const res = await fetch('/api/rag/query', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: question })
+    });
+    if (!res.ok) throw new Error('API error');
+    const data = await res.json();
+    return {
+      id: 'rag',
+      chapter: data.chapter?.title || 'Knowledge Base',
+      page: data.chapter?.classLevel || 0,
+      title: "Chhota's Answer",
+      text: data.answer,
+      keywords: []
+    };
+  } catch (err) {
+    console.error(err);
+    // Fallback to local logic if offline or error
+    const words = question.toLowerCase().split(/\W+/).filter(Boolean);
+    const scored = passages.map((passage) => ({ passage, score: passage.keywords.reduce((n, word) => n + (words.includes(word) ? 1 : 0), 0) })).sort((a, b) => b.score - a.score);
+    return scored[0]?.score ? scored[0].passage : null;
+  }
 }
 
-export function evaluateExplanation(text: string, item = misconceptions[0], attempt = 0) {
+export async function evaluateExplanation(text: string, item = misconceptions[0], attempt = 0) {
+  try {
+    const res = await fetch('/api/rag/evaluate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ explanation: text, misconception: item })
+    });
+    if (res.ok) {
+      const aiData = await res.json();
+      const score = aiData.score || 0;
+      const outcome = score >= .65 ? (attempt > 1 ? 'Resolved with hint' : 'Resolved') : score >= .3 ? 'Partly understood' : 'Unresolved';
+      return { 
+        covered: aiData.covered || [], 
+        missed: aiData.missed || [], 
+        score, 
+        outcome, 
+        needsHint: score < .65 && attempt >= 2,
+        feedback: aiData.feedback
+      };
+    }
+  } catch (err) {
+    console.error("AI Evaluation failed, using local fallback", err);
+  }
+
   const lower = text.toLowerCase();
   const covered = item.keywords.filter((word) => lower.includes(word));
   const missed = item.keywords.filter((word) => !lower.includes(word));
   const score = covered.length / item.keywords.length;
   const outcome = score >= .65 ? (attempt > 1 ? 'Resolved with hint' : 'Resolved') : score >= .3 ? 'Partly understood' : 'Unresolved';
-  return { covered, missed, score, outcome, needsHint: score < .65 && attempt >= 2 };
+  return { covered, missed, score, outcome, needsHint: score < .65 && attempt >= 2, feedback: null };
 }
 
 export function speak(text: string, language = 'en-IN') {
