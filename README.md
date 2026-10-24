@@ -17,37 +17,51 @@ This is a `pnpm` monorepo containing:
 - `artifacts/teach-chhota`: The React (Vite) frontend application.
 - `artifacts/api-server`: The Express backend handling RAG queries, AI evaluation, and database interactions.
 
-## 🚀 Getting Started
+## 🚀 Quick Start (Windows)
 
-### Prerequisites
-- Node.js (v18+)
-- `pnpm` installed globally (`npm install -g pnpm`)
+For a one-click setup and execution, use the provided batch scripts:
 
-### Installation & Setup
+1. **One-Time Setup**:
+   Double-click `setup.bat` (or run `.\setup.bat` in terminal).  
+   This will:
+   - Check Node.js and pnpm prerequisites
+   - Configure environment variables and database URLs
+   - Install all workspace dependencies
+   - Push the SQLite database schema
+   - Build all packages
+   - Seed the cosmetic shop items
+
+2. **Run the Application**:
+   Double-click `run.bat` (or run `.\run.bat` in terminal).  
+   This will start both servers and open `http://localhost:5173` in your browser:
+   - **Frontend App**: `http://localhost:5173`
+   - **Backend API**:  `http://localhost:5000`
+
+---
+
+## 🛠️ Manual Installation & Setup
 
 1. **Install dependencies**:
    ```bash
    pnpm install
    ```
 
-2. **Environment Variables**:
-   Create a `.env` file in the root directory (and in `artifacts/api-server/.env`) with your Gemini API key:
-   ```env
-   GEMINI_API_KEY=your_gemini_api_key_here
+2. **Setup Database & Build**:
+   ```bash
+   pnpm --filter @workspace/db run push-force
+   pnpm run build
+   pnpm --filter @workspace/api-server run seed-cosmetics
    ```
 
 3. **Run the Application**:
-   You can start both the frontend and backend in parallel from the root directory:
-   
-   Start the API Server (Port 5000):
-   ```bash
-   pnpm --filter @workspace/api-server run dev
-   ```
-
-   Start the Frontend (Port 5173):
-   ```bash
-   pnpm --filter @workspace/teach-chhota run dev
-   ```
+   - Start the API Server (Port 5000):
+     ```bash
+     pnpm --filter @workspace/api-server run dev
+     ```
+   - Start the Frontend (Port 5173):
+     ```bash
+     pnpm --filter @workspace/teach-chhota run dev
+     ```
 
 ## 🧠 AI Integration
 

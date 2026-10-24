@@ -3,9 +3,20 @@ import { Link, Route, Switch, useLocation } from 'wouter';
 import {
   ArrowLeft, ArrowRight, BarChart3, Bookmark, BookmarkCheck, BookOpen, Check, ChevronDown, CircleHelp,
   Download, FileText, Home as HomeIcon, Lightbulb, ListChecks, Menu, Mic, Moon, Play, Plus, RotateCcw, Search,
-  Settings, Share2, Sparkles, Star, Sun, Target, ThumbsUp, Users, Volume2, X, Zap
+  Settings, Share2, Sparkles, Star, Sun, Target, ThumbsUp, Users, Volume2, X, Zap,
+  TreePine, ShoppingBag, Trophy, Bug
 } from 'lucide-react';
 import { evaluateExplanation, misconceptions, passages, retrieveAnswer, speak, transcribe } from './service';
+import { AuthProvider, useAuth } from './lib/auth-context';
+import { submitTeachingSession } from './lib/gamification-service';
+import { fireCelebration, fireCoinSparkle } from './lib/confetti';
+import KnowledgeTreePage from './pages/knowledge-tree';
+import GaltiDexPage from './pages/galti-dex';
+import ShopPage from './pages/shop';
+import FriendsPage from './pages/friends';
+import PlusPage from './pages/plus';
+import ProfilePage from './pages/profile';
+import LearningRoadmap from './components/learning-roadmap';
 
 type Student = { id: string; name: string; className: string; color: string };
 type ProgressItem = { concept: string; status: string; date: string };
@@ -48,27 +59,43 @@ function OfflineBadge() {
 function Shell({ children, title }: { children: ReactNode; title?: string }) {
   const [location] = useLocation();
   const [menu, setMenu] = useState(false);
+  const { user } = useAuth();
   const nav = [
     { href: '/', label: 'Home', icon: HomeIcon },
-    { href: '/library', label: 'Library', icon: BookOpen },
-    { href: '/doubt', label: 'Ask a doubt', icon: CircleHelp },
     { href: '/teach', label: 'Teach Chhota', icon: Lightbulb },
-    { href: '/progress', label: 'My progress', icon: BarChart3 },
+    { href: '/tree', label: 'Knowledge Tree', icon: TreePine },
+    { href: '/galti-dex', label: 'Galti Dex', icon: Trophy },
+    { href: '/shop', label: 'Shop & Avatar', icon: ShoppingBag },
+    { href: '/friends', label: 'Friends', icon: Users },
+    { href: '/library', label: 'Library', icon: BookOpen },
+    { href: '/progress', label: 'Progress', icon: BarChart3 },
+    { href: '/plus', label: 'Plus ⭐', icon: Star },
   ];
   return (
     <div className="paper-texture min-h-[100dvh] bg-background md:pl-64">
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col bg-[#285d5c] px-5 py-6 text-[#f9f2d9] md:flex">
-        <Link href="/" className="mb-10 flex items-center gap-3" data-testid="link-brand"><Mascot small /><span><strong className="font-serif text-2xl">Teach Chhota</strong><small className="block text-xs text-[#c5ddd0]">learn by teaching</small></span></Link>
-        <nav className="space-y-2">{nav.map(({ href, label, icon: Icon }) => <Link key={href} href={href} data-testid={`link-nav-${label.toLowerCase().replaceAll(' ', '-')}`} className={`flex min-h-12 items-center gap-3 rounded-2xl px-4 text-sm font-semibold transition ${location === href ? 'bg-[#f3bd62] text-[#285d5c]' : 'text-[#d7e8d6] hover:bg-[#3d716d]'}`}><Icon size={20} />{label}</Link>)}</nav>
-        <div className="mt-auto border-t border-[#4c817b] pt-5"><Link href="/parent" data-testid="link-parent" className="flex min-h-12 items-center gap-3 rounded-2xl px-4 text-sm text-[#d7e8d6] hover:bg-[#3d716d]"><Users size={19} />Parent readout</Link><Link href="/teacher" data-testid="link-teacher" className="flex min-h-12 items-center gap-3 rounded-2xl px-4 text-sm text-[#d7e8d6] hover:bg-[#3d716d]"><Target size={19} />Teacher view</Link><Link href="/settings" data-testid="link-settings" className="flex min-h-12 items-center gap-3 rounded-2xl px-4 text-sm text-[#d7e8d6] hover:bg-[#3d716d]"><Settings size={19} />Settings</Link></div>
+        <Link href="/" className="mb-8 flex items-center gap-3" data-testid="link-brand"><Mascot small /><span><strong className="font-serif text-2xl">Teach Chhota</strong><small className="block text-xs text-[#c5ddd0]">learn by teaching</small></span></Link>
+        <nav className="space-y-1 overflow-y-auto">{nav.map(({ href, label, icon: Icon }) => <Link key={href} href={href} data-testid={`link-nav-${label.toLowerCase().replaceAll(' ', '-')}`} className={`flex min-h-11 items-center gap-3 rounded-2xl px-4 text-sm font-semibold transition ${location === href ? 'bg-[#f3bd62] text-[#285d5c]' : 'text-[#d7e8d6] hover:bg-[#3d716d]'}`}><Icon size={18} />{label}</Link>)}</nav>
+        <div className="mt-auto border-t border-[#4c817b] pt-4"><Link href="/profile" data-testid="link-profile" className="flex min-h-10 items-center gap-3 rounded-2xl px-4 text-sm text-[#d7e8d6] hover:bg-[#3d716d]"><Trophy size={17} />My Profile</Link><Link href="/parent" data-testid="link-parent" className="flex min-h-10 items-center gap-3 rounded-2xl px-4 text-sm text-[#d7e8d6] hover:bg-[#3d716d]"><Users size={17} />Parent readout</Link><Link href="/teacher" data-testid="link-teacher" className="flex min-h-10 items-center gap-3 rounded-2xl px-4 text-sm text-[#d7e8d6] hover:bg-[#3d716d]"><Target size={17} />Teacher view</Link><Link href="/settings" data-testid="link-settings" className="flex min-h-10 items-center gap-3 rounded-2xl px-4 text-sm text-[#d7e8d6] hover:bg-[#3d716d]"><Settings size={17} />Settings</Link></div>
       </aside>
       <header className="sticky top-0 z-20 flex items-center justify-between border-b border-border/80 bg-background/95 px-4 py-3 backdrop-blur md:px-10">
         <button onClick={() => setMenu(!menu)} className="rounded-xl p-2 md:hidden" aria-label="Open menu" data-testid="button-open-menu"><Menu size={23} /></button>
-        <div className="flex items-center gap-3 md:ml-auto"><OfflineBadge /><Link href="/settings" data-testid="link-header-settings" className="rounded-full bg-muted p-2"><Settings size={18} /></Link></div>
-        {menu && <div className="absolute left-3 top-14 w-56 rounded-2xl border border-border bg-card p-3 shadow-xl md:hidden">{nav.map(({ href, label, icon: Icon }) => <Link key={href} href={href} onClick={() => setMenu(false)} className="flex min-h-12 items-center gap-3 rounded-xl px-3 text-sm" data-testid={`mobile-link-${label}`}><Icon size={18} />{label}</Link>)}</div>}
+        <div className="flex items-center gap-2 md:gap-3 md:ml-auto">
+          <Link href="/shop" className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20 text-xs font-bold hover:bg-amber-500/20 transition-colors">
+            <Sparkles size={14} />
+            <span>{user?.gyaanCoins || 0} Coins</span>
+          </Link>
+          <Link href="/tree" className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 text-xs font-bold hover:bg-emerald-500/20 transition-colors">
+            <TreePine size={14} />
+            <span>{Math.round(user?.samajhScoreTotal || 0)} pts</span>
+          </Link>
+          <OfflineBadge />
+          <Link href="/settings" data-testid="link-header-settings" className="rounded-full bg-muted p-2"><Settings size={18} /></Link>
+        </div>
+        {menu && <div className="absolute left-3 top-14 w-56 rounded-2xl border border-border bg-card p-3 shadow-xl md:hidden">{nav.map(({ href, label, icon: Icon }) => <Link key={href} href={href} onClick={() => setMenu(false)} className="flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm" data-testid={`mobile-link-${label}`}><Icon size={18} />{label}</Link>)}</div>}
       </header>
       <main className="mx-auto max-w-6xl px-4 pb-28 pt-7 md:px-10 md:pb-12 md:pt-10">{title && <div className="mb-7"><p className="mb-1 text-sm font-semibold text-primary">{title}</p></div>}{children}</main>
-      <nav className="safe-bottom fixed inset-x-0 bottom-0 z-20 flex justify-around border-t border-border bg-card/95 px-1 pt-2 backdrop-blur md:hidden">{nav.map(({ href, label, icon: Icon }) => <Link key={href} href={href} data-testid={`mobile-nav-${label}`} className={`flex min-h-12 min-w-14 flex-col items-center gap-1 rounded-xl px-1 text-[10px] font-semibold ${location === href ? 'text-primary' : 'text-muted-foreground'}`}><Icon size={20} />{label.replace('Ask a doubt', 'Doubt').replace('My progress', 'Progress')}</Link>)}</nav>
+      <nav className="safe-bottom fixed inset-x-0 bottom-0 z-20 flex justify-around border-t border-border bg-card/95 px-1 pt-2 backdrop-blur md:hidden">{nav.slice(0, 5).map(({ href, label, icon: Icon }) => <Link key={href} href={href} data-testid={`mobile-nav-${label}`} className={`flex min-h-12 min-w-14 flex-col items-center gap-1 rounded-xl px-1 text-[10px] font-semibold ${location === href ? 'text-primary' : 'text-muted-foreground'}`}><Icon size={20} />{label.replace('Ask a doubt', 'Doubt').replace('Knowledge Tree', 'Tree')}</Link>)}</nav>
     </div>
   );
 }
@@ -92,7 +119,7 @@ function Home() {
     const next = [...students, { id: name.toLowerCase().replace(/\W+/g, '-'), name: name.trim(), className: cls, color: '#e47451' }];
     setStudents(next); save('tc-students', next);
   }
-  return <Shell><section className="relative z-50 animate-rise grid gap-8 lg:grid-cols-[1fr_360px] lg:items-center"><div><div className="mb-6 flex items-center gap-6"><div className="relative"><div className="rounded-2xl bg-[#f3bd62] p-3"><Mascot small /></div><span className="absolute -right-2 -top-2 rounded-full bg-[#e47451] p-1.5 text-card"><Sparkles size={12} /></span></div><div><p className="text-sm text-muted-foreground">Today is a good day to learn</p><h1 className="font-serif text-4xl leading-tight text-foreground sm:text-5xl">Hi Learner.</h1></div></div><p className="max-w-md text-lg leading-7 text-muted-foreground">What would you like to do? Chhota is ready, even when the internet is not.</p><div className="relative mt-7 max-w-md"><button onClick={() => setShowProfiles(!showProfiles)} className="flex min-h-12 w-full items-center justify-between rounded-2xl border border-border bg-card px-4 text-left shadow-sm" data-testid="button-profile-switcher"><span className="flex items-center gap-3"><span className="flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold text-card" style={{ background: student.color }}>{student.name[0]}</span><span><span className="block text-xs text-muted-foreground">Learning as</span><b>{student.name} · {student.className}</b></span></span><ChevronDown size={18} /></button>{showProfiles && <div className="absolute z-50 mt-2 w-full rounded-2xl border border-border bg-card p-2 shadow-xl">{students.map((child) => <button key={child.id} onClick={() => { setActive(child.id); save('tc-active', child.id); setShowProfiles(false); }} className="flex min-h-12 w-full items-center gap-3 rounded-xl px-3 text-left hover:bg-muted" data-testid={`button-profile-${child.id}`}><span className="flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold text-card" style={{ background: child.color }}>{child.name[0]}</span>{child.name}<span className="ml-auto text-xs text-muted-foreground">{child.className}</span></button>)}<button onClick={addStudent} className="flex min-h-12 w-full items-center gap-2 rounded-xl px-3 text-left text-sm font-semibold text-primary" data-testid="button-add-student"><Plus size={17} /> Add another child</button></div>}</div></div><div className="relative hidden justify-center lg:flex"><div className="absolute h-64 w-64 rounded-full bg-[#f3bd62]/35 blur-2xl" /><div className="relative rounded-[42%] bg-[#dcebd8] p-12"><Mascot /></div></div></section><section className="mt-12 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{cards.map(({ href, label, text, icon: Icon, color, featured }) => <Link href={href} key={href} data-testid={`card-home-${label.toLowerCase().replaceAll(' ', '-')}`} className={`group relative min-h-44 rounded-[1.4rem] border border-border/70 ${color} p-5 transition hover:-translate-y-1 hover:shadow-lg ${featured ? 'sm:col-span-2 lg:col-span-1' : ''}`}><div className="mb-8 flex items-start justify-between"><span className="rounded-xl bg-card/75 p-2.5 text-primary"><Icon size={23} /></span>{featured && <span className="rounded-full bg-[#e47451] px-2 py-1 text-[10px] font-bold text-card">TRY THIS</span>}</div><h2 className="font-serif text-2xl text-foreground">{label}</h2><p className="mt-1 max-w-[17rem] text-sm text-muted-foreground">{text}</p><ArrowRight className="absolute bottom-5 right-5 text-primary transition group-hover:translate-x-1" size={20} /></Link>)}</section><div className="mt-8 flex flex-col gap-3 rounded-2xl border border-[#c8dfc7] bg-[#e7f2e2] p-4 text-sm text-[#356850] sm:flex-row sm:items-center"><Zap size={20} /><span><b>Small steps count.</b> You have 2 concepts ready for a quick review.</span><Link href="/progress" className="font-bold underline sm:ml-auto" data-testid="link-quick-review">See review list</Link></div></Shell>;
+  return <Shell><section className="relative z-50 animate-rise grid gap-8 lg:grid-cols-[1fr_360px] lg:items-center"><div><div className="mb-6 flex items-center gap-6"><div className="relative"><div className="rounded-2xl bg-[#f3bd62] p-3"><Mascot small /></div><span className="absolute -right-2 -top-2 rounded-full bg-[#e47451] p-1.5 text-card"><Sparkles size={12} /></span></div><div><p className="text-sm text-muted-foreground">Today is a good day to learn</p><h1 className="font-serif text-4xl leading-tight text-foreground sm:text-5xl">Hi Learner.</h1></div></div><p className="max-w-md text-lg leading-7 text-muted-foreground">What would you like to do? Chhota is ready, even when the internet is not.</p><div className="relative mt-7 max-w-md"><button onClick={() => setShowProfiles(!showProfiles)} className="flex min-h-12 w-full items-center justify-between rounded-2xl border border-border bg-card px-4 text-left shadow-sm" data-testid="button-profile-switcher"><span className="flex items-center gap-3"><span className="flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold text-card" style={{ background: student.color }}>{student.name[0]}</span><span><span className="block text-xs text-muted-foreground">Learning as</span><b>{student.name} · {student.className}</b></span></span><ChevronDown size={18} /></button>{showProfiles && <div className="absolute z-50 mt-2 w-full rounded-2xl border border-border bg-card p-2 shadow-xl">{students.map((child) => <button key={child.id} onClick={() => { setActive(child.id); save('tc-active', child.id); setShowProfiles(false); }} className="flex min-h-12 w-full items-center gap-3 rounded-xl px-3 text-left hover:bg-muted" data-testid={`button-profile-${child.id}`}><span className="flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold text-card" style={{ background: child.color }}>{child.name[0]}</span>{child.name}<span className="ml-auto text-xs text-muted-foreground">{child.className}</span></button>)}<button onClick={addStudent} className="flex min-h-12 w-full items-center gap-2 rounded-xl px-3 text-left text-sm font-semibold text-primary" data-testid="button-add-student"><Plus size={17} /> Add another child</button></div>}</div></div><div className="relative hidden justify-center lg:flex"><div className="absolute h-64 w-64 rounded-full bg-[#f3bd62]/35 blur-2xl" /><div className="relative rounded-[42%] bg-[#dcebd8] p-12"><Mascot /></div></div></section><LearningRoadmap /><section className="mt-12 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{cards.map(({ href, label, text, icon: Icon, color, featured }) => <Link href={href} key={href} data-testid={`card-home-${label.toLowerCase().replaceAll(' ', '-')}`} className={`group relative min-h-44 rounded-[1.4rem] border border-border/70 ${color} p-5 transition hover:-translate-y-1 hover:shadow-lg ${featured ? 'sm:col-span-2 lg:col-span-1' : ''}`}><div className="mb-8 flex items-start justify-between"><span className="rounded-xl bg-card/75 p-2.5 text-primary"><Icon size={23} /></span>{featured && <span className="rounded-full bg-[#e47451] px-2 py-1 text-[10px] font-bold text-card">TRY THIS</span>}</div><h2 className="font-serif text-2xl text-foreground">{label}</h2><p className="mt-1 max-w-[17rem] text-sm text-muted-foreground">{text}</p><ArrowRight className="absolute bottom-5 right-5 text-primary transition group-hover:translate-x-1" size={20} /></Link>)}</section><div className="mt-8 flex flex-col gap-3 rounded-2xl border border-[#c8dfc7] bg-[#e7f2e2] p-4 text-sm text-[#356850] sm:flex-row sm:items-center"><Zap size={20} /><span><b>Small steps count.</b> You have 2 concepts ready for a quick review.</span><Link href="/progress" className="font-bold underline sm:ml-auto" data-testid="link-quick-review">See review list</Link></div></Shell>;
 }
 
 type DbChapter = { id: number; classLevel: number; subject: string; title: string; content: string };
@@ -183,11 +210,44 @@ function Teach() {
   const [attempt, setAttempt] = useState(0);
   const [thinking, setThinking] = useState(false);
   const [result, setResult] = useState<Awaited<ReturnType<typeof evaluateExplanation>> | null>(null);
+  const [scoreGain, setScoreGain] = useState<any | null>(null);
   const [sent, setSent] = useState(false);
+  const { refreshUser } = useAuth();
   const item = misconceptions[selected];
-  const evaluate = async () => { if (!text.trim()) return; setThinking(true); setSent(true); try { const res = await evaluateExplanation(text, item, attempt); setResult(res); } finally { setThinking(false); } };
-  const next = () => { setText(''); setResult(null); setSent(false); setAttempt(0); setSelected((selected + 1) % misconceptions.length); };
-  return <Shell><div className="animate-rise"><div className="flex flex-wrap items-end justify-between gap-4"><div><p className="mb-2 font-semibold text-primary">Practice studio</p><h1 className="font-serif text-4xl">Teach Chhota</h1><p className="mt-2 text-muted-foreground">When you teach it, your brain keeps it.</p></div><div className="flex rounded-xl bg-muted p-1"><button onClick={() => setMode('misconception')} className={`min-h-11 rounded-lg px-3 text-sm font-bold ${mode === 'misconception' ? 'bg-card shadow-sm' : 'text-muted-foreground'}`} data-testid="button-mode-misconception">Fix a belief</button><button onClick={() => setMode('back')} className={`min-h-11 rounded-lg px-3 text-sm font-bold ${mode === 'back' ? 'bg-card shadow-sm' : 'text-muted-foreground'}`} data-testid="button-mode-explain-back">Explain back</button></div></div>{mode === 'back' ? <ExplainBack /> : <div className="mt-8 grid gap-7 lg:grid-cols-[260px_1fr]"><div className="flex flex-col items-center rounded-[1.5rem] bg-[#f7dfb4] p-7 text-center"><Mascot thinking={thinking} happy={Boolean(result?.score && result.score >= .65)} /><div className="mt-6 rounded-2xl bg-card p-4 text-left text-sm leading-6 shadow-sm"><b>Chhota says:</b><p className="mt-1">{item.prompt}</p></div></div><div><div className="mb-5 flex items-center gap-3"><div className="flex flex-1 gap-2">{[0, 1, 2].map((step) => <div key={step} className={`h-2 flex-1 rounded-full ${step <= Math.min(attempt, 2) ? 'bg-primary' : 'bg-muted'}`} />)}</div><span className="text-xs font-bold text-muted-foreground">{Math.min(attempt + 1, 3)}/3</span></div><div className="rounded-[1.5rem] border border-border bg-card p-5 shadow-sm sm:p-7"><p className="text-sm font-bold text-accent">{item.chapter}</p><h2 className="mt-2 font-serif text-3xl">Can you help Chhota?</h2><p className="mt-2 text-muted-foreground">Tell Chhota what is wrong with this idea. Use your own words.</p><textarea value={text} onChange={(e) => setText(e.target.value)} placeholder="I would explain it like this…" className="mt-5 min-h-32 w-full rounded-xl border border-border bg-background p-4 text-base outline-none focus:ring-2 focus:ring-ring" data-testid="input-teach-explanation" /><div className="mt-3 flex flex-col gap-3 sm:flex-row"><TalkButton label="Hold to talk" onText={(t) => setText((old) => `${old} ${t}`)} /><button onClick={evaluate} disabled={!text.trim() || thinking} className="flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-5 font-bold text-primary-foreground disabled:opacity-50" data-testid="button-send-explanation">{thinking ? <><span className="animate-pulse">Chhota is thinking...</span></> : <><ArrowRight size={18} /> Send my explanation</>}</button></div>{sent && !thinking && result && <div className="mt-6 animate-pop border-t border-border pt-5"><div className="flex items-center gap-2"><span className={`rounded-full px-3 py-1 text-xs font-bold ${result.score >= .65 ? 'bg-[#d9ebe0] text-[#356850]' : 'bg-[#f7dfb4] text-[#8b6134]'}`}>{result.outcome}</span><span className="text-sm text-muted-foreground">{Math.round(result.score * 100)}% of the idea covered</span></div><p className="mt-3 text-sm">{result.feedback || (result.needsHint ? 'Hint: compare one small part of a whole with another small part. Which one leaves larger pieces?' : result.score >= .65 ? 'That was a clear explanation. Chhota gets it now.' : 'Good start. Add one more detail so Chhota can follow you.')}</p><div className="mt-4 grid gap-3 sm:grid-cols-2"><div className="rounded-xl bg-[#e7f2e2] p-3 text-sm"><b className="text-[#356850]">You covered</b><p className="mt-1">{result.covered.length ? result.covered.join(' · ') : 'Keep going'}</p></div><div className="rounded-xl bg-[#fae6db] p-3 text-sm"><b className="text-accent">Still to add</b><p className="mt-1">{result.missed.length ? result.missed.join(' · ') : 'Nothing missed'}</p></div></div><button onClick={result.score >= .65 || attempt >= 2 ? next : () => { setAttempt(attempt + 1); setText(''); setSent(false); }} className="mt-5 min-h-12 w-full rounded-xl bg-secondary font-bold text-secondary-foreground" data-testid="button-next-teach">{result.score >= .65 || attempt >= 2 ? 'Try another belief' : 'Try again with a hint'}</button></div>}</div></div></div>}</div></Shell>;
+  const evaluate = async () => {
+    if (!text.trim()) return;
+    setThinking(true);
+    setSent(true);
+    try {
+      const res = await evaluateExplanation(text, item, attempt);
+      setResult(res);
+      try {
+        const gRes = await submitTeachingSession({
+          conceptKey: item.id,
+          misconceptionId: item.id,
+          explanationText: text,
+          aiScore: res?.score || 0,
+          aiCorrectness: res?.score || 0,
+          aiClarity: 0.8,
+          aiAnalogyUse: text.toLowerCase().includes('like') || text.toLowerCase().includes('think of') ? 0.8 : 0.4,
+          aiMisconceptionFixed: (res?.score || 0) >= 0.65,
+        });
+        setScoreGain(gRes);
+        if (res?.score && res.score >= 0.65) {
+          fireCelebration();
+        } else {
+          fireCoinSparkle();
+        }
+        refreshUser();
+      } catch (err) {
+        console.warn("Gamification session record error", err);
+      }
+    } finally {
+      setThinking(false);
+    }
+  };
+  const next = () => { setText(''); setResult(null); setScoreGain(null); setSent(false); setAttempt(0); setSelected((selected + 1) % misconceptions.length); };
+  return <Shell><div className="animate-rise"><div className="flex flex-wrap items-end justify-between gap-4"><div><p className="mb-2 font-semibold text-primary">Practice studio</p><h1 className="font-serif text-4xl">Teach Chhota</h1><p className="mt-2 text-muted-foreground">When you teach it, your brain keeps it.</p></div><div className="flex rounded-xl bg-muted p-1"><button onClick={() => setMode('misconception')} className={`min-h-11 rounded-lg px-3 text-sm font-bold ${mode === 'misconception' ? 'bg-card shadow-sm' : 'text-muted-foreground'}`} data-testid="button-mode-misconception">Fix a belief</button><button onClick={() => setMode('back')} className={`min-h-11 rounded-lg px-3 text-sm font-bold ${mode === 'back' ? 'bg-card shadow-sm' : 'text-muted-foreground'}`} data-testid="button-mode-explain-back">Explain back</button></div></div>{mode === 'back' ? <ExplainBack /> : <div className="mt-8 grid gap-7 lg:grid-cols-[260px_1fr]"><div className="flex flex-col items-center rounded-[1.5rem] bg-[#f7dfb4] p-7 text-center"><Mascot thinking={thinking} happy={Boolean(result?.score && result.score >= .65)} /><div className="mt-6 rounded-2xl bg-card p-4 text-left text-sm leading-6 shadow-sm"><b>Chhota says:</b><p className="mt-1">{item.prompt}</p></div></div><div><div className="mb-5 flex items-center gap-3"><div className="flex flex-1 gap-2">{[0, 1, 2].map((step) => <div key={step} className={`h-2 flex-1 rounded-full ${step <= Math.min(attempt, 2) ? 'bg-primary' : 'bg-muted'}`} />)}</div><span className="text-xs font-bold text-muted-foreground">{Math.min(attempt + 1, 3)}/3</span></div><div className="rounded-[1.5rem] border border-border bg-card p-5 shadow-sm sm:p-7"><p className="text-sm font-bold text-accent">{item.chapter}</p><h2 className="mt-2 font-serif text-3xl">Can you help Chhota?</h2><p className="mt-2 text-muted-foreground">Tell Chhota what is wrong with this idea. Use your own words.</p><textarea value={text} onChange={(e) => setText(e.target.value)} placeholder="I would explain it like this…" className="mt-5 min-h-32 w-full rounded-xl border border-border bg-background p-4 text-base outline-none focus:ring-2 focus:ring-ring" data-testid="input-teach-explanation" /><div className="mt-3 flex flex-col gap-3 sm:flex-row"><TalkButton label="Hold to talk" onText={(t) => setText((old) => `${old} ${t}`)} /><button onClick={evaluate} disabled={!text.trim() || thinking} className="flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-5 font-bold text-primary-foreground disabled:opacity-50" data-testid="button-send-explanation">{thinking ? <><span className="animate-pulse">Chhota is thinking...</span></> : <><ArrowRight size={18} /> Send my explanation</>}</button></div>{sent && !thinking && result && <div className="mt-6 animate-pop border-t border-border pt-5"><div className="flex items-center gap-2"><span className={`rounded-full px-3 py-1 text-xs font-bold ${result.score >= .65 ? 'bg-[#d9ebe0] text-[#356850]' : 'bg-[#f7dfb4] text-[#8b6134]'}`}>{result.outcome}</span><span className="text-sm text-muted-foreground">{Math.round(result.score * 100)}% of the idea covered</span></div><p className="mt-3 text-sm">{result.feedback || (result.needsHint ? 'Hint: compare one small part of a whole with another small part. Which one leaves larger pieces?' : result.score >= .65 ? 'That was a clear explanation. Chhota gets it now.' : 'Good start. Add one more detail so Chhota can follow you.')}</p>{scoreGain && <div className="mt-3 p-3.5 rounded-xl bg-linear-to-r from-amber-500/15 via-emerald-500/15 to-teal-500/15 border border-emerald-500/30 flex flex-wrap items-center justify-between gap-2 text-xs font-bold"><div className="flex items-center gap-1.5 text-emerald-700 dark:text-emerald-300"><Trophy size={16} /><span>+{Math.round(scoreGain.scoreBreakdown?.finalScoreGained || 45)} Samajh Points!</span></div><div className="flex items-center gap-1 text-amber-600 dark:text-amber-400"><Sparkles size={14} /><span>+{scoreGain.scoreBreakdown?.coinsGained || 5} Gyaan Coins 🪙</span></div>{scoreGain.cardUnlocked && <span className="text-purple-600 font-bold">🃏 Trophy Card Unlocked!</span>}</div>}<div className="mt-4 grid gap-3 sm:grid-cols-2"><div className="rounded-xl bg-[#e7f2e2] p-3 text-sm"><b className="text-[#356850]">You covered</b><p className="mt-1">{result.covered.length ? result.covered.join(' · ') : 'Keep going'}</p></div><div className="rounded-xl bg-[#fae6db] p-3 text-sm"><b className="text-accent">Still to add</b><p className="mt-1">{result.missed.length ? result.missed.join(' · ') : 'Nothing missed'}</p></div></div><button onClick={result.score >= .65 || attempt >= 2 ? next : () => { setAttempt(attempt + 1); setText(''); setSent(false); }} className="mt-5 min-h-12 w-full rounded-xl bg-secondary font-bold text-secondary-foreground" data-testid="button-next-teach">{result.score >= .65 || attempt >= 2 ? 'Try another belief' : 'Try again with a hint'}</button></div>}</div></div></div>}</div></Shell>;
 }
 
 function ExplainBack() {
@@ -231,7 +291,27 @@ function SettingsPage() {
 
 function App() {
   useEffect(() => { if ('serviceWorker' in navigator) navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`).catch(() => undefined); }, []);
-  return <Switch><Route path="/" component={Home} /><Route path="/library" component={Library} /><Route path="/doubt" component={Doubt} /><Route path="/teach" component={Teach} /><Route path="/progress" component={Progress} /><Route path="/parent" component={Parent} /><Route path="/teacher" component={Teacher} /><Route path="/settings" component={SettingsPage} /><Route component={Home} /></Switch>;
+  return (
+    <AuthProvider>
+      <Switch>
+        <Route path="/" component={Home} />
+        <Route path="/library" component={Library} />
+        <Route path="/doubt" component={Doubt} />
+        <Route path="/teach" component={Teach} />
+        <Route path="/tree" component={KnowledgeTreePage} />
+        <Route path="/galti-dex" component={GaltiDexPage} />
+        <Route path="/shop" component={ShopPage} />
+        <Route path="/friends" component={FriendsPage} />
+        <Route path="/plus" component={PlusPage} />
+        <Route path="/profile/:id?" component={ProfilePage} />
+        <Route path="/progress" component={Progress} />
+        <Route path="/parent" component={Parent} />
+        <Route path="/teacher" component={Teacher} />
+        <Route path="/settings" component={SettingsPage} />
+        <Route component={Home} />
+      </Switch>
+    </AuthProvider>
+  );
 }
 
 export default App;
