@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "set PORT=5173&& set BASE_PATH=/&& vite --config vite.config.ts --host 0.0.0.0",
-    "build": "set PORT=5173&& set BASE_PATH=/&& vite build --config vite.config.ts",
-    "serve": "set PORT=5173&& set BASE_PATH=/&& vite preview --config vite.config.ts --host 0.0.0.0",
+    "dev": "vite --config vite.config.ts --host 0.0.0.0",
+    "build": "vite build --config vite.config.ts",
+    "serve": "vite preview --config vite.config.ts --host 0.0.0.0",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "devDependencies": {
@@ -44,9 +44,11 @@
     "@tailwindcss/typography": "^0.5.15",
     "@tailwindcss/vite": "catalog:",
     "@tanstack/react-query": "catalog:",
+    "@types/canvas-confetti": "^1.9.0",
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
+    "@types/three": "^0.186.0",
     "@vitejs/plugin-react": "catalog:",
     "@workspace/api-client-react": "workspace:*",
     "class-variance-authority": "catalog:",
@@ -73,5 +75,10 @@
     "vite": "catalog:",
     "wouter": "^3.3.5",
     "zod": "catalog:"
+  },
+  "dependencies": {
+    "@react-three/fiber": "^9.8.2",
+    "canvas-confetti": "^1.9.4",
+    "three": "^0.186.1"
   }
 }

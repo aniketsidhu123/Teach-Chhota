@@ -1,0 +1,17 @@
+.root {
+  position: relative;
+  width: min(100%, 280px);
+  aspect-ratio: 7 / 9;
+  min-width: 0;
+  overflow: hidden;
+  background: transparent;
+  pointer-events: none;
+}
+
+.status {
+  display: block;
+  padding: 0.5rem;
+  color: inherit;
+  font: inherit;
+  font-size: 0.75rem;
+}
