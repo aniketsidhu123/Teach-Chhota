@@ -6,9 +6,9 @@
   "scripts": {
     "dev": "set NODE_ENV=development&& set PORT=5000&& pnpm run build && pnpm run start",
     "build": "node ./build.mjs",
-    "start": "node --env-file=.env --enable-source-maps ./dist/index.mjs",
-    "seed": "node --env-file=.env --enable-source-maps ./dist/seed.mjs",
-    "seed-cosmetics": "node --env-file=.env --enable-source-maps ./dist/seed-cosmetics.mjs",
+    "start": "node --env-file-if-exists=.env --enable-source-maps ./dist/index.mjs",
+    "seed": "node --env-file-if-exists=.env --enable-source-maps ./dist/seed.mjs",
+    "seed-cosmetics": "node --env-file-if-exists=.env --enable-source-maps ./dist/seed-cosmetics.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test:roadmaps": "node ./test-roadmaps.mjs"
   },
