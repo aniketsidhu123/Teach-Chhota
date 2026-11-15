@@ -1,7 +1,7 @@
 # 📚 Teach Chhota (टीच छोटा)
 
 > **"Study without internet. Learn by teaching a tiny, curious AI."**  
-> An offline-first, AI-powered learning companion for Indian school students (Classes 6–12, Maths & Science) that implements the **Protégé Effect** and the **Feynman Technique**.
+> An  AI-powered learning companion for Indian school students (Classes 6–12, Maths & Science) that implements the  **Feynman Technique**.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-teal.svg)](LICENSE)
 [![Framework: React 18 + Vite](https://img.shields.io/badge/Frontend-React%2018%20%2B%20Vite-blue.svg)](https://vitejs.dev/)
